@@ -33,7 +33,7 @@
 
 ### 1. 克隆專案
 ```bash
-git clone https://github.com/FlagTech/test_buyhouse.git
+git clone -b update_data https://github.com/FlagTech/test_buyhouse.git
 cd test_buyhouse
 ```
 
