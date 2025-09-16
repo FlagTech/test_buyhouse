@@ -99,8 +99,8 @@ def buy_or_rent(total_price, rent_payment, income, consume, invest_rate):
 
 
     loan_payment = int(list_payment_f[0])
-    value1 = [consume, loan_payment, income - loan_payment]
-    value2 = [consume, rent_payment, income - rent_payment]
+    value1 = [consume, loan_payment, income - consume - loan_payment]
+    value2 = [consume, rent_payment, income - consume - rent_payment]
 
     fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]])
     fig.add_trace(go.Pie(labels=['每月消費', '貸款月付金', '剩餘投資'],

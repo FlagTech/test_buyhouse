@@ -22,7 +22,7 @@
                 $('#rent_payment').text(data.rent_payment);
 
                 // 更新圖表
-                updateCharts($(this).attr('data-name-zh'), $("[name='radio-group1']:checked").val(),
+                updateCharts(location, $("[name='radio-group1']:checked").val(),
                            $("[name='radio-group2']:checked").val(), $("#sq").val());
                 
                    }
@@ -150,12 +150,22 @@ function updateCharts(city, type, duration, sq) {
         },
         success: function(data) {
             if (data.error) {
-                console.error('圖表更新錯誤:', data.error);
+                if (data.error === 'validation_failed') {
+                    // 只在圓餅圖區域顯示驗證失敗訊息
+                    document.getElementById('pie-chart').innerHTML =
+                        '<div style="display: flex; align-items: center; justify-content: center; height: 350px; font-size: 24px; font-weight: bold; color: #dc3545; text-align: center;">' +
+                        data.message + '</div>';
+                    // 清空折線圖區域
+                    document.getElementById('line-chart').innerHTML = '';
+                } else {
+                    console.error('圖表更新錯誤:', data.error);
+                }
                 return;
             }
 
-            // 更新圓餅圖
+            // 更新圓餅圖 - 先清空容器確保移除任何錯誤訊息
             const pieContainer = document.getElementById('pie-chart');
+            pieContainer.innerHTML = '';
             const pieWidth = pieContainer.offsetWidth;
             const pieHeight = 350;
 
@@ -169,11 +179,12 @@ function updateCharts(city, type, duration, sq) {
                     width: pieWidth,
                     height: pieHeight,
                     autosize: false,
-                    margin: {l: 10, r: 10, t: 30, b: 10}
+                    margin: {l: 40, r: 10, t: 30, b: 10}
                 }), pieConfig);
 
-            // 更新折線圖
+            // 更新折線圖 - 先清空容器確保移除任何錯誤訊息
             const lineContainer = document.getElementById('line-chart');
+            lineContainer.innerHTML = '';
             const lineWidth = lineContainer.offsetWidth;
             const lineHeight = 350;
 
@@ -191,14 +202,25 @@ function updateCharts(city, type, duration, sq) {
                 }), lineConfig);
         },
         error: function(xhr, status, error) {
-            console.error('AJAX 錯誤:', error);
+            // 檢查是否是驗證失敗
+            if (xhr.responseJSON && xhr.responseJSON.error === 'validation_failed') {
+                // 只在圓餅圖區域顯示驗證失敗訊息
+                document.getElementById('pie-chart').innerHTML =
+                    '<div style="display: flex; align-items: center; justify-content: center; height: 350px; font-size: 24px; font-weight: bold; color: #dc3545; text-align: center;">' +
+                    xhr.responseJSON.message + '</div>';
+                // 清空折線圖區域
+                document.getElementById('line-chart').innerHTML = '';
+            } else {
+                console.error('AJAX 錯誤:', error);
+            }
         }
     });
 }
 
 // 頁面載入時初始化圖表
 $(document).ready(function() {
-    updateCharts('臺北市', '住宅大樓(11層含以上有電梯)', '五年以下', '30');
+    // 使用收入足夠的初始組合，避免顯示錯誤訊息
+    updateCharts('雲林縣', '透天厝', '三十年以上', '30');
 
     // 監聽輸入變化
     $('#income-input, #consume-input').on('input', function() {

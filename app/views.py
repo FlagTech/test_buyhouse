@@ -172,14 +172,22 @@ def get_charts():
     invest_rate = request.args.get('invest_rate', '0.05')
 
     try:
-        total_price, _, _, rent_payment = Payment(city, type, duration, sq)
+        total_price, first_payment, loan_payment, rent_payment = Payment(city, type, duration, sq)
 
         # 移除 $ 符號並轉換為數字
         total_price_num = int(total_price.replace('$', '').replace(',', ''))
         rent_payment_num = int(rent_payment.replace('$', '').replace(',', ''))
+        loan_payment_num = int(loan_payment.replace('$', '').replace(',', ''))
         income_num = int(income)
         consume_num = int(consume)
         invest_rate_num = float(invest_rate)
+
+        # 驗證收入是否足夠
+        if income_num < consume_num + loan_payment_num or income_num < consume_num + rent_payment_num:
+            return jsonify(
+                error="validation_failed",
+                message="收入<消費+住房成本，你沒資格阿，你沒資格！"
+            )
 
         fig_pie, fig_line = buy_or_rent(
             total_price_num, rent_payment_num, income_num,
