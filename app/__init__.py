@@ -2,9 +2,7 @@
 import importlib
 import os
 from flask import Flask
-from app.views import *
-
-
+from app.views import base_app, base_app_buying
 
 
 def create_app(test_config=None):
@@ -14,7 +12,5 @@ def create_app(test_config=None):
 
     app.register_blueprint(base_app)
     app.register_blueprint(base_app_buying)
-
-    
 
     return app

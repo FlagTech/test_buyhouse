@@ -1,28 +1,33 @@
 """Routes for base Flask app"""
 from flask import request
-from flask import Blueprint, render_template ,jsonify, make_response
+from flask import Blueprint, render_template, jsonify, make_response
 import plotly as plt
 import time
+import json
 from app.dash_apps.plt_trend import plt_trend
 from app.dash_apps.city import find_city
 from app.dash_apps.plt_income import plt_income
 from app.dash_apps.Payment import Payment
 from app.dash_apps.buyorrent import buy_or_rent
-import json
 
 
 
-
-#####base_app#####
+# base_app
 base_app = Blueprint("base_app", __name__)
 
 @base_app.route("/")
 def index():
     graphJSON = plt_trend(check_index=True)
     graphBAR = plt_income()
-    price_location , rent_location , graphBOX = find_city()
+    price_location, rent_location, graphBOX = find_city()
     timestamp = str(int(time.time()))
-    response = make_response(render_template("index.html" , graphJSON = graphJSON , graphBOX = graphBOX , graphBAR = graphBAR, timestamp = timestamp))
+    response = make_response(render_template(
+        "index.html",
+        graphJSON=graphJSON,
+        graphBOX=graphBOX,
+        graphBAR=graphBAR,
+        timestamp=timestamp
+    ))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -40,30 +45,30 @@ def cb():
 
     if price is None:
         price = False
-    else :
+    else:
         price = True
-    
+
     if rent is None:
         rent = False
-    else :
+    else:
         rent = True
 
     if index is None:
         index = False
-    else :
+    else:
         index = True
 
-    if A_price  is None:
-        A_price  = False
-    else :
-        A_price  = True
+    if A_price is None:
+        A_price = False
+    else:
+        A_price = True
 
     if A_rent is None:
         A_rent = False
-    else :
+    else:
         A_rent = True
 
-    graphJSON = plt_trend(city , price , rent , index , A_price , A_rent)
+    graphJSON = plt_trend(city, price, rent, index, A_price, A_rent)
 
     return graphJSON
 
@@ -75,11 +80,11 @@ def cb2():
     type = request.args.get('type')
     duration = request.args.get('duration')
 
-    price_location , rent_location  ,graphBOX = find_city(city , type , duration)
+    price_location, rent_location, graphBOX = find_city(city, type, duration)
 
-    return jsonify(price_location = price_location , rent_location = rent_location)
+    return jsonify(price_location=price_location, rent_location=rent_location)
 
-#箱型圖
+# 箱型圖
 @base_app.route("/pltbox")
 def cb3():
 
@@ -87,11 +92,11 @@ def cb3():
     type = request.args.get('type')
     duration = request.args.get('duration')
 
-    price_location , rent_location , graphBOX = find_city(city , type , duration)
+    price_location, rent_location, graphBOX = find_city(city, type, duration)
 
     return graphBOX
 
-##長條圖
+# 長條圖
 @base_app.route("/pltbar")
 def cb4():
     high = request.args.get('high')
@@ -102,56 +107,59 @@ def cb4():
 
     if high is None:
         high = False
-    else :
+    else:
         high = True
 
     if price is None:
         price = False
-    else :
+    else:
         price = True
-    
+
     if rent is None:
         rent = False
-    else :
+    else:
         rent = True
 
-    if income  is None:
-        income  = False
-    else :
-        income  = True
+    if income is None:
+        income = False
+    else:
+        income = True
 
     if times is None:
         times = False
-    else :
+    else:
         times = True
 
-    
-    graphBAR = plt_income( high ,price , rent , income , times)
+    graphBAR = plt_income(high, price, rent, income, times)
 
     return graphBAR
 
 
 
-
-#####buy_house_app##########
+# buy_house_app
 base_app_buying = Blueprint("base_app_buying", __name__)
 
 @base_app_buying.route("/buy_or_rent")
 def index_buying():
-    
-    return render_template("buyhouse.html" )
+    return render_template("buyhouse.html")
 
 @base_app_buying.route("/buy_or_rent/cb")
 def cb_buyhouse():
-    
     city = request.args.get('city')
     type = request.args.get('type')
     duration = request.args.get('duration')
     sq = request.args.get('sq')
 
-    total_price , First_payment , loan_payment , rent_payment = Payment(city , type ,duration ,sq)
+    total_price, First_payment, loan_payment, rent_payment = Payment(
+        city, type, duration, sq
+    )
 
-    return jsonify(total_price = total_price , First_payment = First_payment , loan_payment = loan_payment ,rent_payment = rent_payment)
+    return jsonify(
+        total_price=total_price,
+        First_payment=First_payment,
+        loan_payment=loan_payment,
+        rent_payment=rent_payment
+    )
 
 @base_app_buying.route("/buy_or_rent/charts")
 def get_charts():
@@ -166,14 +174,17 @@ def get_charts():
     try:
         total_price, _, _, rent_payment = Payment(city, type, duration, sq)
 
-        # 移除$符號並轉換為數字
+        # 移除 $ 符號並轉換為數字
         total_price_num = int(total_price.replace('$', '').replace(',', ''))
         rent_payment_num = int(rent_payment.replace('$', '').replace(',', ''))
         income_num = int(income)
         consume_num = int(consume)
         invest_rate_num = float(invest_rate)
 
-        fig_pie, fig_line = buy_or_rent(total_price_num, rent_payment_num, income_num, consume_num, invest_rate_num)
+        fig_pie, fig_line = buy_or_rent(
+            total_price_num, rent_payment_num, income_num,
+            consume_num, invest_rate_num
+        )
 
         return jsonify(
             pie_chart=json.loads(fig_pie.to_json()),
