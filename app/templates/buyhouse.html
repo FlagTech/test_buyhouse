@@ -25,6 +25,26 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.1/js/bootstrap.bundle.min.js' integrity='sha512-1TK4hjCY5+E9H3r5+05bEGbKGyK506WaDPfPe1s/ihwRjr6OtL43zJLzOFQ+/zciONEd+sp7LwrfOCnyukPSsg==' crossorigin='anonymous'></script>
     <!-- Custom styles for this template-->
     <link href="{{url_for('static' , filename= 'css/sb-admin-2.css')}}" rel="stylesheet">
+    <style>
+        .stat-card-value {
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+            text-align: right;
+        }
+
+        @media (max-width: 1199.98px) {
+            .stat-card-value {
+                font-size: clamp(1rem, 2.8vw, 1.35rem);
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .stat-card-value {
+                font-size: clamp(0.95rem, 6vw, 1.2rem);
+            }
+        }
+    </style>
 
 </head>
 
@@ -161,7 +181,7 @@
                                                     房屋總價
                                                 </div>
                                             </div>
-                                            <div id='total_price' class="h5 mb-0 font-weight-bold text-gray-800">$1520,000</div>
+                                            <div id='total_price' class="h5 mb-0 font-weight-bold text-gray-800 stat-card-value">$1520,000</div>
                                         </div>
                                     </div>
                                 </div>
@@ -175,7 +195,7 @@
                                                     頭款費用
                                                 </div>
                                             </div>
-                                            <div id='First_payment' class="h5 mb-0 font-weight-bold text-gray-800">$15,000</div>
+                                            <div id='First_payment' class="h5 mb-0 font-weight-bold text-gray-800 stat-card-value">$15,000</div>
                                         </div>
                                     </div>
                                 </div>
@@ -189,7 +209,7 @@
                                                     每月貸款費用
                                                 </div>
                                             </div>
-                                            <div id='loan_payment' class="h5 mb-0 font-weight-bold text-gray-800">$11,000</div>
+                                            <div id='loan_payment' class="h5 mb-0 font-weight-bold text-gray-800 stat-card-value">$11,000</div>
                                         </div>
                                     </div>
                                 </div>
@@ -204,7 +224,7 @@
                                                     每月租金費用
                                                 </div>
                                             </div>
-                                            <div id='rent_payment' class="h5 mb-0 font-weight-bold text-gray-800">$15,000</div>
+                                            <div id='rent_payment' class="h5 mb-0 font-weight-bold text-gray-800 stat-card-value">$15,000</div>
                                         </div>
                                     </div>
                                 </div>

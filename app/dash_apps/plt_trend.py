@@ -1,40 +1,33 @@
-from cmath import nan
-from statistics import mean
 import pandas as pd
-from pathlib import Path
 import plotly as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from functools import lru_cache
+from pathlib import Path
+
+DATA_FILE = Path(__file__).resolve().parents[1] / "static" / "assets" / "date_data.csv"
+
+
+@lru_cache(maxsize=1)
+def _load_dataset() -> pd.DataFrame:
+    """Load the Plotly trend dataset once and cache it in-memory."""
+    for encoding, extra_kwargs in (
+        ("utf-8-sig", {}),
+        ("utf-8", {}),
+        ("cp950", {"errors": "ignore"}),
+    ):
+        try:
+            return pd.read_csv(DATA_FILE, encoding=encoding, **extra_kwargs)
+        except UnicodeDecodeError:
+            continue
+    # Final attempt so the underlying exception surfaces for easier debugging.
+    return pd.read_csv(DATA_FILE, encoding="utf-8")
 
 
 def plt_trend(city="臺北市", check_price=True, check_rent=True,
               check_index=False, A_price=True, A_rent=True):
 
-    # 縣市名稱
-    location = {
-        'a': '臺北市', 'b': '臺中市',
-        'c': '基隆市', 'd': '臺南市',
-        'e': '高雄市', 'f': '新北市',
-        'g': '宜蘭縣', 'h': '桃園市',
-        'i': '嘉義市', 'j': '新竹縣',
-        'k': '苗栗縣', 'm': '南投縣',
-        'n': '彰化縣', 'o': '新竹市',
-        'p': '雲林縣', 'q': '嘉義縣',
-        't': '屏東縣', 'u': '花蓮縣',
-        'v': '臺東縣', 'w': '金門',
-        'x': '澎湖縣'
-    }
-
-    try:
-        data = pd.read_csv("app/static/assets/date_data.csv",
-                          encoding='utf-8-sig')
-    except UnicodeDecodeError:
-        try:
-            data = pd.read_csv("app/static/assets/date_data.csv",
-                              encoding='utf-8')
-        except UnicodeDecodeError:
-            data = pd.read_csv("app/static/assets/date_data.csv",
-                              encoding='cp950', errors='ignore')
+    data = _load_dataset()
 
     price = city + "_房價"
     rent = city + "_租金"

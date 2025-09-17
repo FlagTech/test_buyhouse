@@ -1,13 +1,30 @@
 
 
+    const CITY_ALIASES = {
+        '金門縣': '金門',
+    };
+    const CITY_ALIAS_REVERSE = Object.fromEntries(
+        Object.entries(CITY_ALIASES).map(([from, to]) => [to, from])
+    );
+
+    function getLocationName($el) {
+        const name = $el.attr('data-name-zh') || $el.closest('[data-name-zh]').attr('data-name-zh');
+        const normalized = name ? name.trim() : '';
+        return CITY_ALIASES[normalized] || normalized;
+    }
+
     //   call back
       $("#app path").on("click", function(){
-         var location = $(this).attr('data-name-zh')
+         var $target = $(this);
+         var location = getLocationName($target);
+         if (!location) {
+             return;
+         }
          $('#city2').text(location);
          $('#city3').text(location);
 
          $.getJSON({ url: "/plt", 
-               data: { 'city': $(this).attr('data-name-zh'),
+               data: { 'city': location,
                         'price': $("#inlineCheckbox1:checked").val(),
                         'rent': $("#inlineCheckbox2:checked").val(),
                         'A_price': $("#inlineCheckbox3:checked").val(),
@@ -25,7 +42,7 @@
                });
 
          $.getJSON({ url: "/cb2", 
-               data: { 'city':  $(this).attr('data-name-zh'),
+               data: { 'city':  location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val()
                                
@@ -39,7 +56,7 @@
 
          // 更新箱型圖
          $.getJSON({ url: "/pltbox", 
-               data: { 'city': $(this).attr('data-name-zh'),
+               data: { 'city': location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val()
                                
@@ -176,7 +193,11 @@
 
 
      $('#app path').mouseover(function(){ 
-        var location = $(this).attr('data-name-zh')
+        var $target = $(this);
+         var location = getLocationName($target);
+         if (!location) {
+             return;
+         }
         $('#city').text(location);
 
      });
@@ -222,15 +243,19 @@
 
          $("#app path").each(function(){
 
-            var city = $(this).attr('data-name-zh')
+            var $province = $(this);
 
-            if (city){
-               var value = place_data[city] ;
-            }else{
-               var value = 100000 ; 
-            };
-      
-            $(this).css("fill" , myColor(value))
+            var city = getLocationName($province);
+
+            var value = place_data[city];
+            if (value === undefined && CITY_ALIAS_REVERSE[city]) {
+               value = place_data[CITY_ALIAS_REVERSE[city]];
+            }
+            if (value === undefined) {
+               value = 100000;
+            }
+
+            $(this).css("fill", myColor(value))
 
             }
          );         

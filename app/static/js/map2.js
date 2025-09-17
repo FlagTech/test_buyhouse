@@ -1,15 +1,32 @@
 
 
+    const CITY_ALIASES = {
+        '金門縣': '金門',
+    };
+    const CITY_ALIAS_REVERSE = Object.fromEntries(
+        Object.entries(CITY_ALIASES).map(([from, to]) => [to, from])
+    );
+
+    function getLocationName($el) {
+        const name = $el.attr('data-name-zh') || $el.closest('[data-name-zh]').attr('data-name-zh');
+        const normalized = name ? name.trim() : '';
+        return CITY_ALIASES[normalized] || normalized;
+    }
+
     //   call back
       $("#app path").on("click", function(){
-         var location = $(this).attr('data-name-zh')
+         var $target = $(this);
+         var location = getLocationName($target);
+         if (!location) {
+             return;
+         }
          $('#city2').text(location);
          $('#city3').text($("[name='radio-group1']:checked").val());
          $('#city4').text($("[name='radio-group2']:checked").val());
          $('#city5').text($("#sq").val() + '坪');
 
          $.getJSON({ url: "/buy_or_rent/cb", 
-               data: { 'city':  $(this).attr('data-name-zh'),
+               data: { 'city':  location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val(),
                        'sq': $("#sq").val()
@@ -68,7 +85,11 @@
 
 
      $('#app path').mouseover(function(){ 
-        var location = $(this).attr('data-name-zh')
+        var $target = $(this);
+         var location = getLocationName($target);
+         if (!location) {
+             return;
+         }
         $('#city').text(location);
 
      });
@@ -114,15 +135,19 @@
 
          $("#app path").each(function(){
 
-            var city = $(this).attr('data-name-zh')
+            var $province = $(this);
 
-            if (city){
-               var value = place_data[city] ;
-            }else{
-               var value = 100000 ; 
-            };
-      
-            $(this).css("fill" , myColor(value))
+            var city = getLocationName($province);
+
+            var value = place_data[city];
+            if (value === undefined && CITY_ALIAS_REVERSE[city]) {
+               value = place_data[CITY_ALIAS_REVERSE[city]];
+            }
+            if (value === undefined) {
+               value = 100000;
+            }
+
+            $(this).css("fill", myColor(value))
 
             }
          );         

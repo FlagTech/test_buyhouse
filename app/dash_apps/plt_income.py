@@ -1,27 +1,37 @@
 import pandas as pd
-
 import plotly as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from functools import lru_cache
+from pathlib import Path
+
+DATA_FILE = Path(__file__).resolve().parents[1] / "static" / "assets" / "scale.csv"
+
+
+@lru_cache(maxsize=1)
+def _load_scale() -> pd.DataFrame:
+    for encoding, extra_kwargs in (
+        ("utf-8-sig", {}),
+        ("utf-8", {}),
+        ("cp950", {"errors": "ignore"}),
+    ):
+        try:
+            return pd.read_csv(DATA_FILE, encoding=encoding, **extra_kwargs)
+        except UnicodeDecodeError:
+            continue
+    return pd.read_csv(DATA_FILE, encoding="utf-8")
+
 
 def plt_income(check_high=True, check_price=True, check_rent=False,
                check_income=True, check_times=False):
 
-
-
-    try:
-        data = pd.read_csv("app/static/assets/scale.csv", encoding='utf-8-sig')
-    except UnicodeDecodeError:
-        try:
-            data = pd.read_csv("app/static/assets/scale.csv", encoding='utf-8')
-        except UnicodeDecodeError:
-            data = pd.read_csv("app/static/assets/scale.csv", encoding='cp950', errors='ignore')
+    data = _load_scale()
 
     if check_high:
-        data_f = data.sort_values(by=['房價'], ascending=False)
-        data_f = data_f.iloc[:5, :]
+        data_f = data.sort_values(by=['房價'], ascending=False).head(5)
     else:
         data_f = data
+    data_f = data_f.copy()
     data_f['x'] = 0
 
     fig_bar = make_subplots(specs=[[{"secondary_y": True}]])
@@ -68,7 +78,3 @@ def plt_income(check_high=True, check_price=True, check_rent=False,
     graphBAR = plt.io.to_json(fig_bar)
 
     return graphBAR
-
-
-
-  
