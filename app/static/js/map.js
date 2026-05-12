@@ -23,21 +23,17 @@
          $('#city2').text(location);
          $('#city3').text(location);
 
-         $.getJSON({ url: "/plt", 
+         $.getJSON({ url: "/plt",
                data: { 'city': location,
                         'price': $("#inlineCheckbox1:checked").val(),
                         'rent': $("#inlineCheckbox2:checked").val(),
                         'A_price': $("#inlineCheckbox3:checked").val(),
                         'A_rent': $("#inlineCheckbox4:checked").val(),
                         'index' : $("#inlineCheckbox5:checked").val()
-                                 
+
                }, success: function (data) {
-                   // jQuery getJSON 已經自動解析 JSON，不需要再 parse
-                   Plotly.purge('graph_trend');
-                   Plotly.newPlot('graph_trend', data.data, data.layout, {
-                       responsive: true,
-                       displayModeBar: false
-                   });
+                   currentCityData = data;
+                   updateChart(data);
                      }
                });
 
@@ -84,7 +80,19 @@
 
       });
 
+      var currentCityData;
+
+      function updateChart(data) {
+          var traces = data.data.map(function(trace) { return trace; });
+          Plotly.purge('graph_trend');
+          Plotly.newPlot('graph_trend', traces, data.layout, {
+              responsive: true,
+              displayModeBar: false
+          });
+      }
+
       $(".form-check input").on("click", function(){
+         updateChart(currentCityData);
          // 檢查是否已選擇城市
          var selectedCity = $('#city2').text();
          if (selectedCity === '--' || selectedCity === '') {
@@ -102,13 +110,8 @@
                         'index' : $("#inlineCheckbox5:checked").val()
 
                }, success: function (data) {
-                   // jQuery getJSON 已經自動解析 JSON，不需要再 parse
-                   Plotly.purge('graph_trend');
-                   Plotly.newPlot('graph_trend', data.data, data.layout, {
-                       responsive: true,
-                       displayModeBar: false
-                   });
-
+                   currentCityData = data;
+                   updateChart(data);
                      }
                });
          $.getJSON({ url: "/pltbar", 

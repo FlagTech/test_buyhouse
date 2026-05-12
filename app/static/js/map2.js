@@ -160,7 +160,7 @@ function updateCharts(city, type, duration, sq) {
     // 獲取收入、消費、投資報酬率的值
     const income = $('#income-input').val() || '60000';
     const consume = $('#consume-input').val() || '30000';
-    const investRate = $('#Range_bar').val() / 100 || 0.05;
+    const investRate = parseInt($('#Range_bar').val()) || 5;
 
     $.getJSON({
         url: "/buy_or_rent/charts",
@@ -175,15 +175,13 @@ function updateCharts(city, type, duration, sq) {
         },
         success: function(data) {
             if (data.error) {
+                console.error('圖表更新錯誤:', data.error);
                 if (data.error === 'validation_failed') {
-                    // 只在圓餅圖區域顯示驗證失敗訊息
-                    document.getElementById('pie-chart').innerHTML =
-                        '<div style="display: flex; align-items: center; justify-content: center; height: 350px; font-size: 24px; font-weight: bold; color: #dc3545; text-align: center;">' +
-                        data.message + '</div>';
-                    // 清空折線圖區域
-                    document.getElementById('line-chart').innerHTML = '';
-                } else {
-                    console.error('圖表更新錯誤:', data.error);
+                    document.getElementById('pie-chart').insertAdjacentHTML(
+                        'afterbegin',
+                        '<div style="font-size: 20px; font-weight: bold; color: #dc3545; text-align: center; padding: 15px;">' +
+                        data.message + '</div>'
+                    );
                 }
                 return;
             }
@@ -225,6 +223,11 @@ function updateCharts(city, type, duration, sq) {
                     autosize: false,
                     margin: {l: 40, r: 10, t: 30, b: 40}
                 }), lineConfig);
+
+            $('#Range_bar').on('input', function() {
+                updateCharts($('#city2').text(), $("[name='radio-group1']:checked").val(),
+                           $("[name='radio-group2']:checked").val(), $("#sq").val());
+            });
         },
         error: function(xhr, status, error) {
             // 檢查是否是驗證失敗
@@ -249,14 +252,6 @@ $(document).ready(function() {
 
     // 監聽輸入變化
     $('#income-input, #consume-input').on('input', function() {
-        if ($('#city2').text() !== '-') {
-            updateCharts($('#city2').text(), $("[name='radio-group1']:checked").val(),
-                       $("[name='radio-group2']:checked").val(), $("#sq").val());
-        }
-    });
-
-    // 監聽投資報酬率滑桿變化
-    $('#Range_bar').on('input', function() {
         if ($('#city2').text() !== '-') {
             updateCharts($('#city2').text(), $("[name='radio-group1']:checked").val(),
                        $("[name='radio-group2']:checked").val(), $("#sq").val());
