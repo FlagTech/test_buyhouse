@@ -32,6 +32,7 @@
                         'index' : $("#inlineCheckbox5:checked").val()
 
                }, success: function (data) {
+                   updateChart(currentCityData);
                    currentCityData = data;
                    updateChart(data);
                      }
@@ -80,7 +81,7 @@
 
       });
 
-      var currentCityData;
+      var currentCityData = {};
 
       function updateChart(data) {
           var traces = data.data.map(function(trace) { return trace; });
@@ -92,7 +93,6 @@
       }
 
       $(".form-check input").on("click", function(){
-         updateChart(currentCityData);
          // 檢查是否已選擇城市
          var selectedCity = $('#city2').text();
          if (selectedCity === '--' || selectedCity === '') {
@@ -268,7 +268,6 @@
 
       // 頁面載入時初始化趨勢圖
       $(document).ready(function() {
-          // 如果沒有選擇城市，顯示預設的臺北市趨勢
           if ($('#city2').text() === '--' || $('#city2').text() === '') {
               $('#city2').text('臺北市'); // 設定預設城市
               $.getJSON({ url: "/plt",
@@ -279,10 +278,9 @@
                              'A_rent': $("#inlineCheckbox4:checked").val(),
                              'index' : $("#inlineCheckbox5:checked").val()
                     }, success: function (data) {
-                        Plotly.newPlot('graph_trend', data.data, data.layout, {
-                            responsive: true,
-                            displayModeBar: false
-                        });
+                        setTimeout(function() {
+                            updateChart(currentCityData);
+                        }, 0);
                     }
               });
           }

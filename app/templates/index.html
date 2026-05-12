@@ -567,8 +567,8 @@
     <script src="https://d3js.org/d3.v4.js"></script>
     <script>
    //   畫圖
-    graph = {{ graphJSON | safe }}; 
-    Plotly.newPlot('graph_trend', graph.data, graph.layout, {
+    graph = {{ graphJSON | safe }};
+    Plotly.newPlot('graph_trend', graphTrend.data, graphTrend.layout, {
         responsive: true,
         displayModeBar: false
     });
