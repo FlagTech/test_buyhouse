@@ -1,13 +1,25 @@
 
 
+    // 取得被點擊區塊的縣市名稱（金門等縣市的 data-name-zh 在外層 <g> 上）
+      function getCityName(el){
+         return $(el).closest('[data-name-zh]').attr('data-name-zh');
+      }
+
+      // 是否已選擇縣市
+      function hasCity(){
+         var c = $('#city2').text();
+         return c && c !== '--';
+      }
+
     //   call back
       $("#app path").on("click", function(){
-         var location = $(this).attr('data-name-zh')
+         var location = getCityName(this);
+         if (!location) { return; }
          $('#city2').text(location);
          $('#city3').text(location);
 
          $.getJSON({ url: "/plt", 
-               data: { 'city': $(this).attr('data-name-zh'),
+               data: { 'city': location,
                         'price': $("#inlineCheckbox1:checked").val(),
                         'rent': $("#inlineCheckbox2:checked").val(),
                         'A_price': $("#inlineCheckbox3:checked").val(),
@@ -25,7 +37,7 @@
                });
 
          $.getJSON({ url: "/cb2", 
-               data: { 'city':  $(this).attr('data-name-zh'),
+               data: { 'city':  location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val()
                                
@@ -39,7 +51,7 @@
 
          // 更新箱型圖
          $.getJSON({ url: "/pltbox", 
-               data: { 'city': $(this).attr('data-name-zh'),
+               data: { 'city': location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val()
                                
@@ -69,7 +81,7 @@
 
       $(".form-check input").on("click", function(){
 
-         $.getJSON({ url: "/plt", 
+         if (hasCity()) $.getJSON({ url: "/plt", 
                data: { 'city': $('#city2').text(),
                         'price': $("#inlineCheckbox1:checked").val(),
                         'rent': $("#inlineCheckbox2:checked").val(),
@@ -109,6 +121,7 @@
       $("#Hero input").on("click", function(){
          $('#city4').text($("[name='radio-group1']:checked").val());
          $('#city5').text($("[name='radio-group2']:checked").val());
+         if (!hasCity()) { return; }
          $.getJSON({ url: "/cb2", 
                  data: { 'city': $('#city2').text(),
                          'type': $("[name='radio-group1']:checked").val(),
@@ -137,6 +150,7 @@
       $("#Villain input").on("click", function(){
          $('#city4').text($("[name='radio-group1']:checked").val());
          $('#city5').text($("[name='radio-group2']:checked").val());
+         if (!hasCity()) { return; }
          $.getJSON({ url: "/cb2", 
                   data: { 'city': $('#city2').text(),
                            'type': $("[name='radio-group1']:checked").val(),
@@ -169,7 +183,8 @@
 
 
      $('#app path').mouseover(function(){ 
-        var location = $(this).attr('data-name-zh')
+        var location = getCityName(this);
+        if (!location) { return; }
         $('#city').text(location);
 
      });
@@ -215,7 +230,7 @@
 
          $("#app path").each(function(){
 
-            var city = $(this).attr('data-name-zh')
+            var city = getCityName(this);
 
             if (city){
                var value = place_data[city] ;

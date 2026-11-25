@@ -10,6 +10,10 @@ def Payment(city= '臺北市'  , building_type = '住宅大樓(11層含以上有
     #####每坪房價租金
     price , rent , g= find_city(city , building_type ,  year)
 
+    ##該條件查無成交資料時無法試算
+    if not price[1:].isdigit() or not rent[1:].isdigit():
+        return ('資料不足',) * 4
+
     #####房屋總價
     total_price = int(price[1:]) * int(sq)
 
