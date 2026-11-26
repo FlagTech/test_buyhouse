@@ -10,20 +10,36 @@ from plotly.subplots import make_subplots
 
 
 
+##縣市名稱 -> 實價登錄檔案代碼
+CITY_CODES = { '臺北市' : 'a', '臺中市' : 'b',
+               '基隆市' : 'c', '臺南市' : 'd',
+               '高雄市' : 'e', '新北市' : 'f',
+               '宜蘭縣' : 'g', '桃園市' : 'h',
+               '嘉義市' : 'i', '新竹縣' : 'j',
+               '苗栗縣' : 'k', '南投縣' : 'm',
+               '彰化縣' : 'n', '新竹市' : 'o',
+               '雲林縣' : 'p', '嘉義縣' : 'q',
+               '屏東縣' : 't', '花蓮縣' : 'u',
+               '臺東縣' : 'v', '金門'   : 'w',
+               '澎湖縣' : 'x' }
+
+##地圖上的名稱 -> 資料內使用的名稱
+CITY_ALIASES = {'金門縣' : '金門'}
+
+#####屋齡區間####
+DURATIONS = {'五年以下' : (0,50000) , '五年至十五年' : (50000,150000) , '十五年至三十年' : (150000,300000) , '三十年以上' : (300000,1000000)}
+
+
+def normalize_city(city):
+    """回傳資料內使用的縣市名稱；不支援的縣市回傳 None"""
+    city = (city or '').strip()
+    city = CITY_ALIASES.get(city, city)
+    return city if city in CITY_CODES else None
+
+
 def find_city(city= '臺北市'  , building_type = '住宅大樓(11層含以上有電梯)' , year = '五年以下'):
-    ##縣市名稱
-    location = { '臺北市' : 'a', '臺中市' : 'b', 
-                 '基隆市' : 'c', '臺南市' : 'd',
-                 '高雄市' : 'e', '新北市' : 'f',
-                 '宜蘭縣' : 'g', '桃園市' : 'h',
-                 '嘉義市' : 'i', '新竹縣' : 'j',
-                 '苗栗縣' : 'k', '南投縣' : 'm',
-                 '彰化縣' : 'n', '新竹市' : 'o',
-                 '雲林縣' : 'p', '嘉義縣' : 'q',
-                 '屏東縣' : 't', '花蓮縣' : 'u',
-                 '金門'   : 'w', '澎湖縣' : 'x' }
-    #####時間####
-    duration = {'五年以下' : (0,50000) , '五年至十五年' : (50000,150000) , '十五年至三十年' : (150000,300000) , '三十年以上' : (300000,1000000)}
+    location = CITY_CODES
+    duration = DURATIONS
     time = int(datetime.now().strftime("%Y%m%d")) - 19110000
 
 
@@ -34,14 +50,18 @@ def find_city(city= '臺北市'  , building_type = '住宅大樓(11層含以上�
     date = ['114Q2' , '114Q1' , '113Q4' , '113Q3' ,'113Q2']
     for i in date:
         path = Path.cwd() / "app/static/assets/data" / i
-        x = list(path.glob(location[city]+'*a.csv'))[0]
-        y = list(path.glob(location[city]+'*c.csv'))[0]
-        data_x = pd.read_csv(x , low_memory=False)
-        data_y = pd.read_csv(y , low_memory=False)
-        ###房價資料
-        data_price = pd.concat([data_price ,data_x])
-        ###租金資料
-        data_rent = pd.concat([ data_rent ,data_y])
+        ##部分縣市某些季度沒有資料檔（例如金門的租賃資料），缺檔時略過
+        for pattern, kind in (('*a.csv', 'price'), ('*c.csv', 'rent')):
+            files = list(path.glob(location[city] + pattern))
+            if not files:
+                continue
+            df = pd.read_csv(files[0], low_memory=False)
+            if kind == 'price':
+                ###房價資料
+                data_price = pd.concat([data_price, df])
+            else:
+                ###租金資料
+                data_rent = pd.concat([data_rent, df])
 
 
 
@@ -66,7 +86,10 @@ def find_city(city= '臺北市'  , building_type = '住宅大樓(11層含以上�
     f_df['單價元坪'] = f_df['單價元坪'].apply(int)
 
     price = f_df['單價元坪'].mean()
-    price = int(price)
+    if pd.isna(price):
+        price = '資料不足'
+    else:
+        price = int(price)
 
 
 

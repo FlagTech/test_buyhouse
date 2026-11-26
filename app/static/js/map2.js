@@ -1,15 +1,25 @@
 
 
+    // 取得被點擊區塊的縣市名稱（金門等縣市的 data-name-zh 在外層 <g> 上）
+      function getCityName(el){
+         return $(el).closest('[data-name-zh]').attr('data-name-zh');
+      }
+
+      // 目前在地圖上選擇的縣市
+      var selectedCity = null;
+
     //   call back
       $("#app path").on("click", function(){
-         var location = $(this).attr('data-name-zh')
+         var location = getCityName(this);
+         if (!location) { return; }
+         selectedCity = location;
          $('#city2').text(location);
          $('#city3').text($("[name='radio-group1']:checked").val());
          $('#city4').text($("[name='radio-group2']:checked").val());
          $('#city5').text($("#sq").val() + '坪');
 
          $.getJSON({ url: "/buy_or_rent/cb", 
-               data: { 'city':  $(this).attr('data-name-zh'),
+               data: { 'city':  location,
                        'type': $("[name='radio-group1']:checked").val(),
                        'duration': $("[name='radio-group2']:checked").val(),
                        'sq': $("#sq").val()
@@ -31,13 +41,18 @@
       // CB 
       $("#send").bind('click' , function() {
 
+         // 尚未選擇縣市時不送出請求
+         if (!selectedCity) {
+            $('#city2').text('請先在右側地圖選擇縣市');
+            return;
+         }
+
          $('#city3').text($("[name='radio-group1']:checked").val());
          $('#city4').text($("[name='radio-group2']:checked").val());
-         $('#city4').text($("[name='radio-group2']:checked").val());  
-         $('#city5').text($("#sq").val() + '坪');   
+         $('#city5').text($("#sq").val() + '坪');
 
-         $.getJSON({ url: "/buy_or_rent/cb", 
-                 data: { 'city': $('#city2').text(),
+         $.getJSON({ url: "/buy_or_rent/cb",
+                 data: { 'city': selectedCity,
                          'type': $("[name='radio-group1']:checked").val(),
                          'duration': $("[name='radio-group2']:checked").val(),
                          'sq': $("#sq").val()
@@ -60,7 +75,8 @@
 
 
      $('#app path').mouseover(function(){ 
-        var location = $(this).attr('data-name-zh')
+        var location = getCityName(this);
+        if (!location) { return; }
         $('#city').text(location);
 
      });
@@ -106,7 +122,7 @@
 
          $("#app path").each(function(){
 
-            var city = $(this).attr('data-name-zh')
+            var city = getCityName(this);
 
             if (city){
                var value = place_data[city] ;

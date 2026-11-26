@@ -4,10 +4,28 @@ from flask import Blueprint, render_template ,jsonify, make_response
 import plotly as plt
 import time
 from app.dash_apps.plt_trend import plt_trend
-from app.dash_apps.city import find_city
+from app.dash_apps.city import find_city, normalize_city, DURATIONS
 from app.dash_apps.plt_income import plt_income
 from app.dash_apps.Payment import Payment
 
+
+def bad_request(message):
+    """參數錯誤時回傳 400，避免後端拋出例外變成 500"""
+    return jsonify(error=message), 400
+
+
+def get_city_args():
+    """讀取並檢查 city / type / duration 參數，回傳 (city, type, duration, error)"""
+    city = normalize_city(request.args.get('city'))
+    if city is None:
+        return None, None, None, bad_request('請先選擇有效的縣市')
+
+    building_type = request.args.get('type') or '住宅大樓(11層含以上有電梯)'
+    duration = request.args.get('duration') or '五年以下'
+    if duration not in DURATIONS:
+        return None, None, None, bad_request('屋齡參數錯誤')
+
+    return city, building_type, duration, None
 
 
 
@@ -28,7 +46,9 @@ def index():
 
 @base_app.route("/plt")
 def cb():
-    city = request.args.get('city')
+    city = normalize_city(request.args.get('city'))
+    if city is None:
+        return bad_request('請先選擇有效的縣市')
     price = request.args.get('price')
     rent = request.args.get('rent')
     index = request.args.get('index')
@@ -69,9 +89,9 @@ def cb():
 @base_app.route("/cb2")
 def cb2():
 
-    city = request.args.get('city')
-    type = request.args.get('type')
-    duration = request.args.get('duration')
+    city, type, duration, error = get_city_args()
+    if error:
+        return error
 
     price_location , rent_location  ,graphBOX = find_city(city , type , duration)
 
@@ -81,9 +101,9 @@ def cb2():
 @base_app.route("/pltbox")
 def cb3():
 
-    city = request.args.get('city')
-    type = request.args.get('type')
-    duration = request.args.get('duration')
+    city, type, duration, error = get_city_args()
+    if error:
+        return error
 
     price_location , rent_location , graphBOX = find_city(city , type , duration)
 
@@ -142,10 +162,13 @@ def index_buying():
 @base_app_buying.route("/buy_or_rent/cb")
 def cb_buyhouse():
     
-    city = request.args.get('city')
-    type = request.args.get('type')
-    duration = request.args.get('duration')
-    sq = request.args.get('sq')
+    city, type, duration, error = get_city_args()
+    if error:
+        return error
+
+    sq = request.args.get('sq', '30')
+    if not sq.isdigit() or not 0 <= int(sq) <= 1000:
+        return bad_request('坪數參數錯誤')
 
     total_price , First_payment , loan_payment , rent_payment = Payment(city , type ,duration ,sq)
 
